@@ -1,0 +1,280 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local lp = Players.LocalPlayer
+local mouse = lp:GetMouse()
+local gui = Instance.new("ScreenGui", CoreGui)
+gui.Name = "CoolJevilGUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 360, 0, 560)
+frame.Position = UDim2.new(0.5, -180, 0.5, -280)
+frame.BackgroundColor3 = Color3.fromRGB(10,10,10)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "🌀 Txeen 🌀"
+title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.fromRGB(0, 255, 255)
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+title.TextSize = 16
+
+local menuMinimized, selectedPlayer, tpEnabled = false, nil, true
+local lastSpeed, lastJump = 16, 50
+local toggles = {Fly=false, Jump=false, Dash=false, Noclip=false}
+
+-- ✕ / _ tuşları kontrol
+local function tryClose(btn)
+	frame.Visible = false
+	menuMinimized = (btn == minBtn)
+end
+
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Text = "✕"
+closeBtn.MouseButton1Click:Connect(function() tryClose(closeBtn) end)
+
+local minBtn = Instance.new("TextButton", frame)
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -60, 0, 0)
+minBtn.Text = "_"
+minBtn.MouseButton1Click:Connect(function() tryClose(minBtn) end)
+
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.LeftAlt and menuMinimized then
+		frame.Visible = true
+		menuMinimized = false
+	elseif input.KeyCode == Enum.KeyCode.Q and toggles.Dash then
+		Dash()
+	end
+end)
+
+-- Etiketler
+local speedLabel = Instance.new("TextLabel", frame)
+speedLabel.Position = UDim2.new(0, 10, 0, 20)
+speedLabel.Size = UDim2.new(0, 150, 0, 20)
+speedLabel.Text = "🔧 Yürüyüş Hızı"
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.TextSize = 13
+speedLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+speedLabel.BackgroundTransparency = 1
+
+local jumpLabel = Instance.new("TextLabel", frame)
+jumpLabel.Position = UDim2.new(0, 180, 0, 20)
+jumpLabel.Size = UDim2.new(0, 150, 0, 20)
+jumpLabel.Text = "🦘 Zıplama Gücü"
+jumpLabel.Font = Enum.Font.Gotham
+jumpLabel.TextSize = 13
+jumpLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+jumpLabel.BackgroundTransparency = 1
+
+-- Değer kutuları
+local hizBox = Instance.new("TextBox", frame)
+hizBox.Position = UDim2.new(0, 10, 0, 40)
+hizBox.Size = UDim2.new(0, 150, 0, 30)
+hizBox.PlaceholderText = "Örn: 16"
+hizBox.BackgroundColor3 = Color3.fromRGB(20,20,20)
+hizBox.TextColor3 = Color3.fromRGB(255,255,255)
+hizBox.Font = Enum.Font.Gotham
+hizBox.TextSize = 14
+
+local ziplaBox = Instance.new("TextBox", frame)
+ziplaBox.Position = UDim2.new(0, 180, 0, 40)
+ziplaBox.Size = UDim2.new(0, 150, 0, 30)
+ziplaBox.PlaceholderText = "Örn: 50"
+ziplaBox.BackgroundColor3 = Color3.fromRGB(20,20,20)
+ziplaBox.TextColor3 = Color3.fromRGB(255,255,255)
+ziplaBox.Font = Enum.Font.Gotham
+ziplaBox.TextSize = 14
+
+hizBox.FocusLost:Connect(function()
+	local val = tonumber(hizBox.Text)
+	if val then
+		local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum.WalkSpeed = val lastSpeed = val end
+	end
+end)
+
+ziplaBox.FocusLost:Connect(function()
+	local val = tonumber(ziplaBox.Text)
+	if val then
+		local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum.JumpPower = val lastJump = val end
+	end
+end)
+
+-- Toggle butonları
+local function createToggle(txt, y, ref)
+	local btn = Instance.new("TextButton", frame)
+	btn.Size = UDim2.new(0, 340, 0, 30)
+	btn.Position = UDim2.new(0, 10, 0, y)
+	btn.Text = txt .. ": Kapalı"
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.MouseButton1Click:Connect(function()
+		toggles[ref] = not toggles[ref]
+		btn.Text = txt .. ": " .. (toggles[ref] and "Açık" or "Kapalı")
+	end)
+end
+
+createToggle("✈️ Uçuş", 80, "Fly")
+createToggle("⚡ Sonsuz Zıplama", 120, "Jump")
+createToggle("🚀 Dash (Q)", 160, "Dash")
+createToggle("🚪 Noclip", 200, "Noclip")
+
+-- 🎯 Oyuncu bilgisi etiketi
+local selectLabel = Instance.new("TextLabel", frame)
+selectLabel.Size = UDim2.new(0, 340, 0, 20)
+selectLabel.Position = UDim2.new(0, 10, 0, 240)
+selectLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+selectLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+selectLabel.Font = Enum.Font.Gotham
+selectLabel.TextSize = 13
+selectLabel.Text = "🎯 Seçilen Oyuncu: [Yok]"
+
+-- 👤 Oyuncu seç butonu
+local selectBtn = Instance.new("TextButton", frame)
+selectBtn.Size = UDim2.new(0, 340, 0, 30)
+selectBtn.Position = UDim2.new(0, 10, 0, 260)
+selectBtn.Text = "Oyuncu Seç"
+selectBtn.Font = Enum.Font.GothamBold
+selectBtn.TextSize = 14
+selectBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+selectBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local listFrame
+selectBtn.MouseButton1Click:Connect(function()
+	if listFrame then listFrame:Destroy() listFrame = nil return end
+	listFrame = Instance.new("ScrollingFrame", frame)
+	listFrame.Size = UDim2.new(0, 340, 0, 150)
+	listFrame.Position = UDim2.new(0, 10, 0, 300)
+	listFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	listFrame.BorderSizePixel = 0
+	listFrame.ScrollBarThickness = 6
+	local layout = Instance.new("UIListLayout", listFrame)
+	layout.Padding = UDim.new(0, 2)
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= lp then
+			local pbtn = Instance.new("TextButton", listFrame)
+			pbtn.Size = UDim2.new(1, 0, 0, 30)
+			pbtn.Text = p.DisplayName
+			pbtn.Font = Enum.Font.Gotham
+			pbtn.TextSize = 13
+			pbtn.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+			pbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			pbtn.MouseButton1Click:Connect(function()
+				selectedPlayer = p
+				selectLabel.Text = "🎯 Seçilen Oyuncu: " .. p.DisplayName
+				selectBtn.Text = "Oyuncu Seçildi"
+				listFrame:Destroy()
+				listFrame = nil
+			end)
+		end
+	end
+end)
+
+-- 🔁 Işınlan toggle
+local tpToggle = Instance.new("TextButton", frame)
+tpToggle.Size = UDim2.new(0, 340, 0, 30)
+tpToggle.Position = UDim2.new(0, 10, 0, 460)
+tpToggle.Text = "Işınlan: Açık"
+tpToggle.Font = Enum.Font.GothamBold
+tpToggle.TextSize = 14
+tpToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+tpToggle.TextColor3 = Color3.fromRGB(0, 255, 255)
+tpToggle.MouseButton1Click:Connect(function()
+	tpEnabled = not tpEnabled
+	tpToggle.Text = "Işınlan: " .. (tpEnabled and "Açık" or "Kapalı")
+end)
+
+-- 🔻 Ayraç çizgi
+local line = Instance.new("Frame", frame)
+line.Size = UDim2.new(0, 340, 0, 2)
+line.Position = UDim2.new(0, 10, 0, 495)
+line.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+line.BorderSizePixel = 0
+
+-- 🔘 Işınlan mesafesi kutusu (1–10)
+local distanceBox = Instance.new("TextBox", frame)
+distanceBox.Size = UDim2.new(0, 340, 0, 30)
+distanceBox.Position = UDim2.new(0, 10, 0, 505)
+distanceBox.PlaceholderText = "💫 Işınlanma Mesafesi (1–10)"
+distanceBox.Text = ""
+distanceBox.Font = Enum.Font.Gotham
+distanceBox.TextSize = 14
+distanceBox.TextColor3 = Color3.fromRGB(255,255,255)
+distanceBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
+
+-- 🔀 Işınlanma fonksiyonu (her karede)
+RunService.Heartbeat:Connect(function()
+	if tpEnabled and selectedPlayer and selectedPlayer.Character and lp.Character then
+		local targetHRP = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+		local myHRP = lp.Character:FindFirstChild("HumanoidRootPart")
+		if targetHRP and myHRP then
+			local dist = tonumber(distanceBox.Text) or 5
+			dist = math.clamp(dist, 1, 10)
+			myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, dist)
+		end
+	end
+end)
+
+-- 🚀 Dash (Q tuşuyla 50m raycast)
+function Dash()
+	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	local dir = hrp.CFrame.LookVector
+	local ray = Ray.new(hrp.Position, dir * 50)
+	local hit = workspace:FindPartOnRay(ray, lp.Character)
+	if not hit then
+		hrp.CFrame = hrp.CFrame + dir * 50
+	end
+end
+
+-- ✈️ Fly
+RunService.RenderStepped:Connect(function()
+	if toggles.Fly then
+		local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then hrp.Velocity = mouse.Hit.LookVector * 50 end
+	end
+end)
+
+-- 🚪 Noclip
+RunService.Stepped:Connect(function()
+	local char = lp.Character
+	if char and toggles.Noclip then
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") then part.CanCollide = false end
+		end
+	end
+end)
+
+-- ⚡ Sonsuz zıplama
+UIS.JumpRequest:Connect(function()
+	if toggles.Jump then
+		local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum:ChangeState("Jumping") end
+	end
+end)
+
+-- 🧬 Ölüm sonrası değerler korunur
+lp.CharacterAdded:Connect(function(char)
+	wait(0.5)
+	local hum = char:WaitForChild("Humanoid")
+	hum.WalkSpeed = lastSpeed
+	hum.JumpPower = lastJump
+	if toggles.Noclip then
+		for _, part in ipairs(char:GetDescendants()) do
+			if part:IsA("BasePart") then part.CanCollide = false end
+		end
+	end
+end)
