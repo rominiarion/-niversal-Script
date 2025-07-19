@@ -29,7 +29,7 @@ local menuMinimized, selectedPlayer, tpEnabled = false, nil, true
 local lastSpeed, lastJump = 16, 50
 local toggles = {Fly=false, Jump=false, Dash=false, Noclip=false}
 
--- ✕ / _ tuşları kontrol
+
 local function tryClose(btn)
 	frame.Visible = false
 	menuMinimized = (btn == minBtn)
@@ -57,7 +57,7 @@ UIS.InputBegan:Connect(function(input, gp)
 	end
 end)
 
--- Etiketler
+
 local speedLabel = Instance.new("TextLabel", frame)
 speedLabel.Position = UDim2.new(0, 10, 0, 20)
 speedLabel.Size = UDim2.new(0, 150, 0, 20)
@@ -76,7 +76,7 @@ jumpLabel.TextSize = 13
 jumpLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 jumpLabel.BackgroundTransparency = 1
 
--- Değer kutuları
+
 local hizBox = Instance.new("TextBox", frame)
 hizBox.Position = UDim2.new(0, 10, 0, 40)
 hizBox.Size = UDim2.new(0, 150, 0, 30)
@@ -111,7 +111,7 @@ ziplaBox.FocusLost:Connect(function()
 	end
 end)
 
--- Toggle butonları
+
 local function createToggle(txt, y, ref)
 	local btn = Instance.new("TextButton", frame)
 	btn.Size = UDim2.new(0, 340, 0, 30)
@@ -132,7 +132,7 @@ createToggle("⚡ Sonsuz Zıplama", 120, "Jump")
 createToggle("🚀 Dash (Q)", 160, "Dash")
 createToggle("🚪 Noclip", 200, "Noclip")
 
--- 🎯 Oyuncu bilgisi etiketi
+
 local selectLabel = Instance.new("TextLabel", frame)
 selectLabel.Size = UDim2.new(0, 340, 0, 20)
 selectLabel.Position = UDim2.new(0, 10, 0, 240)
@@ -142,7 +142,7 @@ selectLabel.Font = Enum.Font.Gotham
 selectLabel.TextSize = 13
 selectLabel.Text = "🎯 Seçilen Oyuncu: [Yok]"
 
--- 👤 Oyuncu seç butonu
+
 local selectBtn = Instance.new("TextButton", frame)
 selectBtn.Size = UDim2.new(0, 340, 0, 30)
 selectBtn.Position = UDim2.new(0, 10, 0, 260)
@@ -183,7 +183,7 @@ selectBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- 🔁 Işınlan toggle
+
 local tpToggle = Instance.new("TextButton", frame)
 tpToggle.Size = UDim2.new(0, 340, 0, 30)
 tpToggle.Position = UDim2.new(0, 10, 0, 460)
@@ -197,14 +197,14 @@ tpToggle.MouseButton1Click:Connect(function()
 	tpToggle.Text = "Işınlan: " .. (tpEnabled and "Açık" or "Kapalı")
 end)
 
--- 🔻 Ayraç çizgi
+
 local line = Instance.new("Frame", frame)
 line.Size = UDim2.new(0, 340, 0, 2)
 line.Position = UDim2.new(0, 10, 0, 495)
 line.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 line.BorderSizePixel = 0
 
--- 🔘 Işınlan mesafesi kutusu (1–10)
+
 local distanceBox = Instance.new("TextBox", frame)
 distanceBox.Size = UDim2.new(0, 340, 0, 30)
 distanceBox.Position = UDim2.new(0, 10, 0, 505)
@@ -215,7 +215,7 @@ distanceBox.TextSize = 14
 distanceBox.TextColor3 = Color3.fromRGB(255,255,255)
 distanceBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
--- 🔀 Işınlanma fonksiyonu (her karede)
+
 RunService.Heartbeat:Connect(function()
 	if tpEnabled and selectedPlayer and selectedPlayer.Character and lp.Character then
 		local targetHRP = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -228,7 +228,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- 🚀 Dash (Q tuşuyla 50m raycast)
+
 function Dash()
 	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
@@ -240,7 +240,7 @@ function Dash()
 	end
 end
 
--- ✈️ Fly
+
 RunService.RenderStepped:Connect(function()
 	if toggles.Fly then
 		local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
@@ -248,7 +248,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- 🚪 Noclip
+
 RunService.Stepped:Connect(function()
 	local char = lp.Character
 	if char and toggles.Noclip then
@@ -258,7 +258,7 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- ⚡ Sonsuz zıplama
+
 UIS.JumpRequest:Connect(function()
 	if toggles.Jump then
 		local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
@@ -266,7 +266,7 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
--- 🧬 Ölüm sonrası değerler korunur
+
 lp.CharacterAdded:Connect(function(char)
 	wait(0.5)
 	local hum = char:WaitForChild("Humanoid")
